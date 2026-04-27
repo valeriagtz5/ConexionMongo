@@ -19,7 +19,7 @@ import org.bson.conversions.Bson;
  *
  * @author valeria
  */
-public class ConexionMongo_262721 {
+public class ConexionMongo_2627211 {
 
     public static void main(String[] args) {
         // CONFIGURACIÓN
@@ -27,6 +27,96 @@ public class ConexionMongo_262721 {
         MongoDatabase db = client.getDatabase("restaurantsDB"); // Seleccionar la base de datos
         MongoCollection<Document> col = db.getCollection("restaurants"); // Seleccionar la coleccion
         
+        // ------ ASIGNACIÓN ------
+        col.deleteMany(new Document()); // Eliminar todo lo del ejercicio
+        
+        // 1. Insertar un solo documento
+        Document document2 = new Document();
+        document2.append("name", "Cafe de la Plaza");
+        document2.append("stars", 4.3);
+        document2.append("categories", Arrays.asList(new String[]{"Cafe","Postres","Desayuno"}));
+        
+        // 2. Insertar varios documentos adicionales
+        ArrayList<Document> lista = new ArrayList<>();
+        
+        lista.add(new Document ("name", "Expresso Express")
+                .append("stars", 4.8)
+                .append("categories", Arrays.asList(new String[]{"Te", "Infusiones","Postres"}))
+        );
+        
+        lista.add(new Document ("name", "The Tea House")
+                .append("stars", 3.9)
+                .append("categories", Arrays.asList(new String[]{"Te", "Infusiones","Postres"}))
+        );
+        
+        lista.add(new Document ("name", "Morning Brew")
+                .append("stars", 4)
+                .append("categories", Arrays.asList(new String[]{"Cafe", "Desayuno","Bakery"}))
+        );
+        
+        // 3. Filtros a mostrar
+        System.out.println("=== FILTROS ===");
+        
+        // Restaurantes con 4.5 o mas estrellas
+        for(Document d : col.find(Filters.gte("stars", 4.5))){
+            System.out.println(d.toJson());
+        }
+        
+        // Restaurantes cuyo nombre diga "Cafe"
+        for(Document d : col.find(Filters.regex("name", "Cafe"))){
+            System.out.println(d.toJson());
+        }
+        
+        // Restaurantes con categories que incluyan "Postres".
+        for(Document d : col.find(Filters.in("categories", Arrays.asList("Postres")))){
+            System.out.println(d.toJson());
+        }
+        
+        // Restaurantes con stars entre 3 y 4.3
+        Bson filtro = Filters.and(Filters.gte("stars", 3), Filters.lte("stars",4.3));
+        for(Document d : col.find(filtro)){
+            System.out.println(d.toJson());
+        }
+        
+        // Restaurantes cuyo nombre empieza con "T".
+        for(Document d : col.find(Filters.regex("name", "^T"))){
+            System.out.println(d.toJson());
+        }
+        
+        // 3. Updates
+        System.out.println("=== UPDATES ===");
+        
+        // Cambiar stars a 4.5 para "Morning Brew"
+        col.updateOne(Filters.eq("name", "Morning Brew"),
+                Updates.set("stars", 4.5)
+        );
+        
+        // Incrementar stars +0.2 para documentos con categories que contengan "Bakery" o "Desayuno"
+        col.updateMany(Filters.in("categories", Arrays.asList("Bakery", "Desayuno")),
+                Updates.inc("stars", 0.2)
+        );
+        
+        // Agregar campos phone = "555-111-2222" y open = true a "Café de la Plaza"
+        col.updateOne(Filters.eq("name", "Café de la Plaza"),
+                Updates.combine(
+                        Updates.set("phone", "555-111-2222"),
+                        Updates.set("open", true)     
+                )
+        );
+        
+        // 4. Updates
+        System.out.println("=== DELETES ===");
+        
+        // Eliminar documento con name = "Espresso Express"
+        col.deleteOne(Filters.eq("name", "Expresso Express"));
+        
+        // Eliminar todos los documentos con stars < 4
+        col.deleteMany(Filters.lt("stars", 4));
+        /* 
+        // ------ FIN ASIGNACIÓN ------
+        
+        
+        /* ------ EJERCICIO -------
         // -- CREATE
         // Insertar un solo documento
         Document document = new Document();
@@ -113,6 +203,7 @@ public class ConexionMongo_262721 {
         col.deleteMany(Filters.in("categories", Arrays.asList("China", "Te")));
         
         System.out.println("Deletes realizados correctamente");
-        
+        ---------- FIN EJERCICIO -----------
+        */
     }
 }
